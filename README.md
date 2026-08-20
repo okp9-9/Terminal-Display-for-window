@@ -16,7 +16,7 @@ Projecting other window graphic in terminal with ascii-art for window
 > This for some situation you run program through other console (it's better to open in console window)
 
 4. Choose your style, The result preview :
-  <img align="center" width="300" height="300" src="./assets/mode.png">
+  <img align="center" width="500" height="500" src="./assets/mode.png">
 
 5. Select your window by process id, blank for whole screen.
 > NOTE
@@ -46,6 +46,7 @@ Projecting other window graphic in terminal with ascii-art for window
 - Window os (win32, gdi32)
 
 <br>
+
 ## Installation & Build
 
 ### build
