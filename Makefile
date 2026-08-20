@@ -7,7 +7,7 @@ CFLAGS = -Wall
 LDFLAGS = 
 LDOBJ = -c
 
-LIBS = -lgdi32 -luser32
+LIBS = -lgdi32
 
 LD = gcc
 

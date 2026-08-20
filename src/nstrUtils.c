@@ -26,12 +26,13 @@ bool nstr_compare(char s1[], char s2[]){
 
 //> Duplicate the string.
 char *nstrcreate(char *str){
-    char *mstr = malloc(sizeof(str));
+    char *mstr = malloc(MAXSTR_INPUT * sizeof(char));
     int i = 0;
-    while(str[i]){
+    while(str[i] || str[i] != '\0'){
         mstr[i] = str[i];
         i++;
     }
+    mstr[i] = '\0';
     return mstr;
 }
 

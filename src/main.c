@@ -9,7 +9,8 @@
 #include "../includes/nstrUtils.h"
 
 //> ASCII of brightness.
-#define ALL_CHARS "$@B8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^\'. "
+// #define ALL_CHARS "$@B8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^\'. "
+#define ALL_CHARS " .,_-~+><\'^\"*:;i!lI?(){}[]1|\\/tfjrxnuvczXYUJCLQ0OZmwqpdblhao#MW&8B&@"
 int ALL_CHARS_LEN = sizeof(ALL_CHARS) / sizeof(char);
 
 //> Only one is work fine (more than 1 may cause glich).
@@ -88,6 +89,15 @@ LRESULT CALLBACK KeyBoardHandle(int, WPARAM, LPARAM);
 
 bool isPlay;
 
+//> Check if target window has title bar will shift the render up to 32 to remove title bar from rendering.
+// bool checkTitleTab(HWND *window){
+//     LONG_PTR style = GetWindowLongPtr(window, GWL_STYLE);
+
+//     if((style & WS_CAPTION) == WS_CAPTION) return true;
+
+//     return false;
+// }
+
 
 //> Initialize window data.
 void GetWinInfo(WinInfo *info, char title[]){
@@ -100,7 +110,9 @@ void GetWinInfo(WinInfo *info, char title[]){
     //> NOTE : The desktop & specific window rendering is different.
 
     if(isDesktop) mainWin = GetDesktopWindow();
-    else mainWin = FindWindowA(NULL, title);
+    else {
+        mainWin = FindWindowA(NULL, title);
+    }
 
 
     // SetWindowPos(mainWin, NULL, 0, 0, 1133, 688, SWP_NOMOVE);
@@ -404,8 +416,6 @@ int main(int arg, char **argv){
 
             return 0;
         }
-
-        getchar();
     }
 
 
@@ -453,27 +463,32 @@ int main(int arg, char **argv){
     int selected_id;
     printf("Select your window id (blank for entrie desktop): ");
     nIntInput(&selected_id);
-    // If not found any window set to DESKTOP.
-    
+
     //> Get title from list by id.
     char *mtitle = getWindowTitle(list_titles, selected_id);
-    //> Save title.
-    char *titleName = nstrcreate(mtitle ? mtitle : "DESKTOP");
 
-    //> Clean.
-    free_winTitle(list_titles);
+    // If not found any window set to DESKTOP.
+    if(selected_id == -1){
+        mtitle = "DESKTOP";
+    }
 
-    printf("You selected %s\n", titleName);
+    printf("You selected %s \n", mtitle);
 
 
     //> Input for pixel skip
-    printf("Enter the X-axis skip : ");
+    printf("Enter the X-axis skip (5) : ");
     nIntInput(&OFFSET_X);
 
-    printf("Enter the Y-axis skip : ");
+    printf("Enter the Y-axis skip (12): ");
     nIntInput(&OFFSET_Y);
     
-    if(!OFFSET_X || !OFFSET_Y){
+    if(OFFSET_X == -1){
+        OFFSET_X = 5;
+    }
+    if(OFFSET_Y == -1){
+        OFFSET_Y = 12;
+    }
+    else if(!OFFSET_X || !OFFSET_Y){
         return 0;
     }
 
@@ -481,7 +496,10 @@ int main(int arg, char **argv){
     
     //> Get window info by title.
     WinInfo info;
-    GetWinInfo(&info, titleName);
+    GetWinInfo(&info, mtitle);
+
+    //> Clean.
+    free_winTitle(list_titles);
 
     //> Get current console.
     HWND mainConsole = GetConsoleWin();
@@ -499,16 +517,22 @@ int main(int arg, char **argv){
 
     isPlay = true;
     //> Loop.
+    MSG msg;
     while (isPlay)
     {
 
+        //> Catch input event.
+        if(PeekMessage(&msg, NULL, 0, 0, 0)){
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
         ProjectPixels(&info, colorsList);
 
         UpdateTerminal(colorsList, &info, threads, Screen);
 
         //> Clear screen.
         fputs("\033[2J", stdout);
-        fflush(stdout);
+        // fflush(stdout);
         system("cls");
         
         //> Print to screen.
@@ -523,15 +547,13 @@ int main(int arg, char **argv){
 
     //> Clean data.
     DelWinInfo(&info, colorsList);
-    free(titleName);
     free(Screen);
     free(threads);
     UnhookWindowsHookEx(hKeyboardHook);
 
     printf("\nPlace any key to continue : ");
     getchar();
-    getchar();
-
+    
     //> Create new console then close this console.
     createNewConsole();
     SendMessage(mainConsole, WM_CLOSE, 0, 0);
